@@ -14,7 +14,6 @@ CropCare AI is a precision diagnostics tool that uses Google's Gemini AI to anal
 The Gemini 3 Flash model is used to analyze uploaded images of crops. It identifies the plant species, detects diseases or pests, assesses severity, and recommends both organic and chemical treatment protocols.
 
 ## Proof of Google AI Usage
-Attach screenshots in a `/proof` folder:
 - [AI Proof](./proof/ai-proof.png)
 
 ## Screenshots
@@ -23,7 +22,7 @@ Add project screenshots:
 - [Screenshot2](./proof/screenshot2.png)
 
 ## Demo Video
-[Watch Demo](https://drive.google.com/file/d/your-video-id/view)
+- [Watch Demo for CropCare AI](https://drive.google.com/file/d/your-video-id/view)
 
 ## Installation Steps
 ```bash
