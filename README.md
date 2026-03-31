@@ -23,7 +23,7 @@ Add project screenshots:
 - [Screenshot2](./proof/screenshot2.png)
 
 ## Demo Video
-Upload your demo video to Google Drive and paste the shareable link here (max 3 minutes). [Watch Demo](https://drive.google.com/file/d/your-video-id/view)
+[Watch Demo](https://drive.google.com/file/d/your-video-id/view)
 
 ## Installation Steps
 ```bash
