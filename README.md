@@ -28,10 +28,10 @@ Upload your demo video to Google Drive and paste the shareable link here (max 3 
 ## Installation Steps
 ```bash
 # Clone the repository
-git clone <your-repo-link>
+git clone https://github.com/nozarash1/CropCare-AI
 
 # Go to project folder
-cd project-name
+cd CropCare-AI
 
 # Install dependencies
 npm install
