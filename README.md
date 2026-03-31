@@ -28,12 +28,12 @@ The model performs the following:
 
 ## Proof of Google AI Usage
 Attach screenshots in a `/proof` folder:
-- [AI Proof](.proof/Ai_proof.jpeg)
+- [AI Proof](./proof/Ai_proof.jpeg)
 
 ## Screenshots
 Add project screenshots:
-- **Dashboard:** [Screenshot1](./screenshots/dashboard.png)
-- **AI Analysis:** [Screenshot2](./screenshots/analysis-result.png)
+- **Dashboard:** [Screenshot1](./screenshots/proof1.jpeg)
+- **AI Analysis:** [Screenshot2](./screenshots/proof2.jpeg)
 
 ## Demo Video
 Upload your demo video to Google Drive and paste the shareable link here (max 3 minutes). [Watch Demo](https://drive.google.com/file/d/your-video-id/view)
