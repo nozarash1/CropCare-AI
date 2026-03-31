@@ -28,7 +28,7 @@ The model performs the following:
 
 ## Proof of Google AI Usage
 Attach screenshots in a `/proof` folder:
-- [AI Proof](./proof/ai-usage-proof.png)
+- [AI Proof](.proof/Ai_proof.jpeg)
 
 ## Screenshots
 Add project screenshots:
