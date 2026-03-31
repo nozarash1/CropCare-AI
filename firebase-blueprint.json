@@ -1,0 +1,85 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile and preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "theme": { "type": "string", "enum": ["light", "dark"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Analysis": {
+      "title": "Plant Analysis",
+      "description": "History of plant diagnoses for a user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "crop_name": { "type": "string" },
+        "disease_detected": { "type": "string" },
+        "confidence_score": { "type": "number" },
+        "severity_level": { "type": "string" },
+        "organic_treatments": { "type": "array", "items": { "type": "string" } },
+        "chemical_treatments": { "type": "array", "items": { "type": "string" } },
+        "immediate_action": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "weather": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "crop_name", "disease_detected", "createdAt"]
+    },
+    "ForumPost": {
+      "title": "Forum Post",
+      "description": "Community questions and discussions",
+      "type": "object",
+      "properties": {
+        "authorUid": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhoto": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "commentCount": { "type": "number" }
+      },
+      "required": ["authorUid", "title", "content", "createdAt"]
+    },
+    "Comment": {
+      "title": "Post Comment",
+      "description": "Comments on forum posts",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string" },
+        "authorUid": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhoto": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["postId", "authorUid", "content", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/analyses/{analysisId}": {
+      "schema": "Analysis",
+      "description": "History of plant diagnoses"
+    },
+    "/posts/{postId}": {
+      "schema": "ForumPost",
+      "description": "Community forum posts"
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments on forum posts"
+    }
+  }
+}

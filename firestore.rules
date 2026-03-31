@@ -1,0 +1,109 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+    function isAuthor() {
+      return isAuthenticated() && request.auth.uid == resource.data.authorUid;
+    }
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*") || url.matches("^data:image/.*"));
+    }
+    function isValidString(field, minLen, maxLen) {
+      return request.resource.data[field] is string && 
+             request.resource.data[field].size() >= minLen && 
+             request.resource.data[field].size() <= maxLen;
+    }
+    function isValidList(list, maxItems, maxItemSize) {
+      return list is list && list.size() <= maxItems && 
+             list.all(item => item is string && item.size() <= maxItemSize);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return data.uid == request.auth.uid &&
+             data.email is string && isValidEmail(data.email) &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 100)) &&
+             (!('photoURL' in data) || (data.photoURL is string && isValidUrl(data.photoURL))) &&
+             (!('theme' in data) || (data.theme in ['light', 'dark']));
+    }
+
+    function isValidAnalysis(data) {
+      return data.uid == request.auth.uid &&
+             data.crop_name is string && data.crop_name.size() > 0 && data.crop_name.size() < 100 &&
+             data.disease_detected is string && data.disease_detected.size() < 200 &&
+             data.confidence_score is number && data.confidence_score >= 0 && data.confidence_score <= 100 &&
+             data.severity_level in ['Low', 'Moderate', 'High', 'None'] &&
+             isValidList(data.organic_treatments, 10, 500) &&
+             isValidList(data.chemical_treatments, 10, 500) &&
+             data.immediate_action is string && data.immediate_action.size() < 1000 &&
+             (!('imageUrl' in data) || (data.imageUrl is string && isValidUrl(data.imageUrl))) &&
+             data.createdAt is string;
+    }
+
+    function isValidPost(data) {
+      return data.authorUid == request.auth.uid &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 5000 &&
+             (!('imageUrl' in data) || (data.imageUrl is string && isValidUrl(data.imageUrl))) &&
+             data.createdAt is string &&
+             data.commentCount is number;
+    }
+
+    function isValidComment(data) {
+      return data.authorUid == request.auth.uid &&
+             data.postId is string &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 1000 &&
+             data.createdAt is string;
+    }
+
+    // ===============================================================
+    // Match Rules
+    // ===============================================================
+    match /users/{uid} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(uid) && isValidUser(request.resource.data);
+      allow update: if isOwner(uid) && isValidUser(request.resource.data);
+    }
+
+    match /analyses/{analysisId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isAuthenticated() && isValidAnalysis(request.resource.data);
+      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+    }
+
+    match /posts/{postId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidPost(request.resource.data);
+      allow update: if isAuthor() && isValidPost(request.resource.data);
+      allow delete: if isAuthor();
+
+      match /comments/{commentId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() && isValidComment(request.resource.data);
+        allow delete: if isAuthor();
+      }
+    }
+  }
+}

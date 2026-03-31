@@ -1,0 +1,7 @@
+{
+  "name": "CropCare AI",
+  "description": "Expert AI analysis for Indian & Kerala crops. Identify diseases and get treatment protocols from leaf images.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
