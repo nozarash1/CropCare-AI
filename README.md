@@ -1,6 +1,6 @@
 # 🌿 CropCare AI
 
-**CropCare AI** is a precision agriculture platform designed to empower Indian and Kerala farmers with expert-level crop diagnostics and treatment advice. By leveraging the power of **Google Gemini AI** and real-time **weather data**, the app provides highly localized and context-aware solutions for farm management.
+**CropCare AI** is a precision agriculture platform designed to empower Indian and Kerala farmers with expert-level crop diagnostics and treatment advice. By leveraging the power of **Google Gemini AI** and real-time **weather data**, the app provides highly localized and context-aware solutions for crop management.
 
 ---
 
