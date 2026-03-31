@@ -1,20 +1,7 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/2f2f102a-018f-47e7-a71a-2830310b79a5
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+CropCare AI is a comprehensive digital assistant designed to empower Indian farmers with expert-level agronomy at their fingertips. By combining the power of the Gemini AI with real-time weather data, the app provides highly localized and context-aware diagnostics for crops like Paddy, Coconut, Rubber, and Spices.
+Key Features:
+📸 Instant AI Diagnosis: Upload or snap a photo of a leaf to identify diseases with high confidence.
+☁️ Weather-Aware Advice: Treatment protocols that adapt to your local humidity and temperature.
+🤝 Farmer's Forum: A real-time space to share findings and seek advice from the community.
+📂 Analysis History: Securely track your farm's health over time with a personal profile.
+🌓 Adaptive UI: Nature-inspired design with full Dark Mode support for field use.
