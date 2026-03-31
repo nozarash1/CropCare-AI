@@ -36,7 +36,7 @@ Add project screenshots:
 - **AI Analysis:** [Screenshot2](./screenshots/proof2.jpeg)
 
 ## Demo Video
-Upload your demo video to Google Drive and paste the shareable link here (max 3 minutes). [Watch Demo](https://drive.google.com/file/d/your-video-id/view)
+Upload your demo video to Google Drive and paste the shareable link here (max 3 minutes). [Watch Demo](https://drive.google.com/drive/folders/1zgErcV_a68eED8AFKgQ8SaTwi1tSP0MI)
 
 ## Installation Steps
 ```bash
