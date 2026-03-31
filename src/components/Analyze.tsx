@@ -17,8 +17,7 @@ import {
   Wind
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { auth, db, handleFirestoreError, OperationType } from '../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { saveAnalysis } from '../lib/api';
 import { fetchWeather, WeatherData, getWeatherAdvice } from '../lib/weather';
 
 interface AnalysisResult {
@@ -166,19 +165,15 @@ export default function Analyze() {
         const parsedResult = JSON.parse(text) as AnalysisResult;
         setResult(parsedResult);
 
-        // Save to Firebase if user is logged in
-        if (auth.currentUser) {
-          try {
-            await addDoc(collection(db, 'analyses'), {
-              uid: auth.currentUser.uid,
-              ...parsedResult,
-              imageUrl: base64Image, // In a real app, upload to storage first
-              weather: weather,
-              createdAt: new Date().toISOString()
-            });
-          } catch (err) {
-            handleFirestoreError(err, OperationType.CREATE, 'analyses');
-          }
+        // Save to backend
+        try {
+          await saveAnalysis({
+            ...parsedResult,
+            imageUrl: base64Image,
+            weather: weather,
+          });
+        } catch (err) {
+          console.error("Failed to save analysis:", err);
         }
       } else {
         throw new Error("Empty response from AI");

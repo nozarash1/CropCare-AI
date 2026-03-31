@@ -121,7 +121,7 @@ export default function App() {
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-8 pb-32">
-        {!user && activeTab !== 'analyze' ? (
+        {!user && activeTab === 'profile' ? (
           <div className="text-center py-20 space-y-8">
             <div className="w-24 h-24 bg-green-100 dark:bg-green-900/30 rounded-[2.5rem] flex items-center justify-center text-green-600 mx-auto">
               <ShieldCheck size={48} />

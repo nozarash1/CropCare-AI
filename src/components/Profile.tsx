@@ -12,43 +12,35 @@ import {
   Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { auth, db, logout, handleFirestoreError, OperationType } from '../firebase';
-import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
+import { 
+  fetchAnalyses, 
+  deleteAnalysis, 
+  logout, 
+  Analysis, 
+  User 
+} from '../lib/api';
 import { format } from 'date-fns';
 
-interface Analysis {
-  id: string;
-  crop_name: string;
-  disease_detected: string;
-  confidence_score: number;
-  severity_level: string;
-  createdAt: string;
-  imageUrl: string;
+interface ProfileProps {
+  user: User;
 }
 
-export default function Profile() {
+export default function Profile({ user }: ProfileProps) {
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
 
   useEffect(() => {
-    if (!auth.currentUser) return;
+    const loadAnalyses = async () => {
+      try {
+        const data = await fetchAnalyses();
+        setAnalyses(data);
+      } catch (err) {
+        console.error("Failed to fetch analyses:", err);
+      }
+    };
 
-    const q = query(
-      collection(db, 'analyses'), 
-      where('uid', '==', auth.currentUser.uid),
-      orderBy('createdAt', 'desc')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Analysis[];
-      setAnalyses(data);
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'analyses'));
-
-    return () => unsubscribe();
+    loadAnalyses();
   }, []);
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -61,10 +53,20 @@ export default function Profile() {
   const confirmDelete = async () => {
     if (!deletingId) return;
     try {
-      await deleteDoc(doc(db, 'analyses', deletingId));
+      await deleteAnalysis(deletingId);
+      setAnalyses(prev => prev.filter(a => a.id !== deletingId));
       setDeletingId(null);
     } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, 'analyses');
+      console.error("Failed to delete analysis:", err);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      window.location.reload();
+    } catch (err) {
+      console.error("Logout failed:", err);
     }
   };
 
@@ -73,15 +75,13 @@ export default function Profile() {
     a.disease_detected.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!auth.currentUser) return null;
-
   return (
     <div className="space-y-8">
       {/* User Header */}
       <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col md:flex-row items-center gap-8">
         <div className="w-24 h-24 rounded-3xl bg-green-100 dark:bg-green-900/30 overflow-hidden shrink-0 border-4 border-white dark:border-gray-700 shadow-lg">
-          {auth.currentUser.photoURL ? (
-            <img src={auth.currentUser.photoURL} alt={auth.currentUser.displayName || ''} className="w-full h-full object-cover" />
+          {user.photoURL ? (
+            <img src={user.photoURL} alt={user.displayName || ''} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-green-600">
               <UserIcon size={48} />
@@ -89,8 +89,8 @@ export default function Profile() {
           )}
         </div>
         <div className="flex-1 text-center md:text-left space-y-2">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{auth.currentUser.displayName || 'Farmer'}</h2>
-          <p className="text-gray-500 dark:text-gray-400 font-medium">{auth.currentUser.email}</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{user.displayName || 'Farmer'}</h2>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">{user.email}</p>
           <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-2">
             <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-full">
               <History size={14} className="text-green-600" />
@@ -98,12 +98,12 @@ export default function Profile() {
             </div>
             <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-full">
               <Calendar size={14} className="text-blue-600" />
-              Joined {format(new Date(auth.currentUser.metadata.creationTime || Date.now()), 'MMM yyyy')}
+              Joined {format(new Date(user.createdAt || Date.now()), 'MMM yyyy')}
             </div>
           </div>
         </div>
         <button 
-          onClick={logout}
+          onClick={handleLogout}
           className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
         >
           <LogOut size={20} />

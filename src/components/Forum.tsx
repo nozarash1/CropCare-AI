@@ -8,10 +8,11 @@ import {
   Plus, 
   X,
   MessageCircle,
-  ChevronRight
+  ChevronRight,
+  Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { auth, db, handleFirestoreError, OperationType } from '../firebase';
+import { auth, db, handleFirestoreError, OperationType, signInWithGoogle } from '../firebase';
 import { 
   collection, 
   addDoc, 
@@ -22,7 +23,8 @@ import {
   doc, 
   updateDoc, 
   increment,
-  getDocs
+  getDocs,
+  deleteDoc
 } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -91,7 +93,15 @@ export default function Forum() {
 
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth.currentUser || !newTitle || !newContent) return;
+    if (!auth.currentUser) {
+      try {
+        await signInWithGoogle();
+      } catch (err) {
+        console.error('Sign in failed:', err);
+      }
+      return;
+    }
+    if (!newTitle || !newContent) return;
 
     try {
       await addDoc(collection(db, 'posts'), {
@@ -113,12 +123,36 @@ export default function Forum() {
     }
   };
 
+  const handleDeletePost = async (postId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!auth.currentUser) return;
+    if (!window.confirm('Are you sure you want to delete this post? All comments will also be inaccessible.')) return;
+
+    try {
+      await deleteDoc(doc(db, 'posts', postId));
+      if (selectedPost?.id === postId) {
+        setSelectedPost(null);
+      }
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `posts/${postId}`);
+    }
+  };
+
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth.currentUser || !newComment || !selectedPost) return;
+    if (!auth.currentUser) {
+      try {
+        await signInWithGoogle();
+      } catch (err) {
+        console.error('Sign in failed:', err);
+      }
+      return;
+    }
+    if (!newComment || !selectedPost) return;
 
     try {
       await addDoc(collection(db, `posts/${selectedPost.id}/comments`), {
+        postId: selectedPost.id,
         authorUid: auth.currentUser.uid,
         authorName: auth.currentUser.displayName || 'Anonymous Farmer',
         authorPhoto: auth.currentUser.photoURL || '',
@@ -134,6 +168,22 @@ export default function Forum() {
       setNewComment('');
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, 'comments');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!auth.currentUser || !selectedPost) return;
+    if (!window.confirm('Are you sure you want to delete this comment?')) return;
+
+    try {
+      await deleteDoc(doc(db, `posts/${selectedPost.id}/comments`, commentId));
+      
+      // Decrement comment count
+      await updateDoc(doc(db, 'posts', selectedPost.id), {
+        commentCount: increment(-1)
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `comments/${commentId}`);
     }
   };
 
@@ -156,7 +206,17 @@ export default function Forum() {
           <p className="text-gray-500 dark:text-gray-400">Discuss plant diseases and treatments with fellow farmers.</p>
         </div>
         <button 
-          onClick={() => setIsCreating(true)}
+          onClick={async () => {
+            if (!auth.currentUser) {
+              try {
+                await signInWithGoogle();
+              } catch (err) {
+                console.error('Sign in failed:', err);
+              }
+              return;
+            }
+            setIsCreating(true);
+          }}
           className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-200 dark:shadow-none transition-all"
         >
           <Plus size={20} />
@@ -204,6 +264,15 @@ export default function Forum() {
                       <ImageIcon size={16} className="text-blue-600" />
                       Image attached
                     </div>
+                  )}
+                  {auth.currentUser?.uid === post.authorUid && (
+                    <button 
+                      onClick={(e) => handleDeletePost(post.id, e)}
+                      className="flex items-center gap-1.5 text-xs font-bold text-red-500 hover:text-red-600 transition-colors ml-auto"
+                    >
+                      <Trash2 size={14} />
+                      Delete
+                    </button>
                   )}
                 </div>
               </div>
@@ -368,9 +437,19 @@ export default function Forum() {
                           <div className="flex-1 space-y-1">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-bold text-gray-900 dark:text-white">{comment.authorName}</span>
-                              <span className="text-[10px] text-gray-400 uppercase font-bold">
-                                {comment.createdAt ? formatDistanceToNow(new Date(comment.createdAt)) : 'just now'} ago
-                              </span>
+                              <div className="flex items-center gap-2">
+                                {auth.currentUser?.uid === comment.authorUid && (
+                                  <button 
+                                    onClick={() => handleDeleteComment(comment.id)}
+                                    className="text-red-500 hover:text-red-600 transition-colors"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+                                )}
+                                <span className="text-[10px] text-gray-400 uppercase font-bold">
+                                  {comment.createdAt ? formatDistanceToNow(new Date(comment.createdAt)) : 'just now'} ago
+                                </span>
+                              </div>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400">{comment.content}</p>
                           </div>
@@ -383,12 +462,13 @@ export default function Forum() {
                         type="text"
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
-                        placeholder="Write a helpful response..."
-                        className="flex-1 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                        placeholder={auth.currentUser ? "Write a helpful response..." : "Log in to join the discussion"}
+                        disabled={!auth.currentUser}
+                        className="flex-1 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all disabled:opacity-50"
                       />
                       <button 
                         type="submit"
-                        disabled={!newComment}
+                        disabled={!newComment || !auth.currentUser}
                         className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white w-12 h-12 rounded-2xl flex items-center justify-center transition-all"
                       >
                         <Send size={20} />

@@ -1,103 +1,54 @@
-# 🌿 CropCare AI
+# CropCare AI
 
-**CropCare AI** is a precision agriculture platform designed to empower Indian and Kerala farmers with expert-level crop diagnostics and treatment advice. By leveraging the power of **Google Gemini AI** and real-time **weather data**, the app provides highly localized and context-aware solutions for crop management.
+## Problem Statement
+Farmers, particularly in regions like Kerala, India, face significant challenges in identifying crop diseases and pests in a timely manner. Traditional methods of diagnosis are often slow, inaccessible, or inaccurate, leading to substantial crop losses and reduced agricultural productivity.
 
----
+## Project Description
+**CropCare AI** is a precision diagnostics application designed to empower farmers with instant, expert-level agricultural advice. By leveraging advanced computer vision and artificial intelligence, the app allows users to upload or take photos of affected plants to receive an immediate diagnosis. 
 
-## 🚀 Key Features
+Key features include:
+- **AI-Powered Diagnosis:** Instant identification of plant diseases and pests.
+- **Weather-Aware Recommendations:** Integrates real-time local weather data to provide treatment advice that is effective for current environmental conditions.
+- **Comprehensive Treatment Plans:** Offers both organic and chemical treatment options for every diagnosis.
+- **Community Forum:** A space for farmers to discuss plant health, share experiences, and support each other.
+- **History Tracking:** Logged-in users can save their analysis history for future reference.
 
-### 📸 AI-Powered Diagnostics
-- **Instant Analysis**: Snap or upload photos of crop leaves for immediate disease identification.
-- **Expert Knowledge**: Specialized in Indian and Kerala crops (Paddy, Coconut, Rubber, Spices, Plantains, etc.).
-- **Treatment Protocols**: Get both organic and chemical treatment recommendations tailored to the specific disease.
+## Google AI Usage
+### Tools / Models Used
+- **Gemini 3 Flash** (`gemini-3-flash-preview`)
 
-### ☁️ Weather-Integrated Advice
-- **Local Context**: Automatically fetches current weather data (Temperature, Humidity, Conditions) for your location.
-- **Smart Recommendations**: Treatment advice adjusts based on weather (e.g., "Avoid spraying fungicide if rain is expected in the next 2 hours").
+### How Google AI Was Used
+The **Gemini 3 Flash** model is the core engine of CropCare AI. It is used in a multimodal capacity to analyze plant images. When a farmer uploads a photo, the app sends the image data along with a detailed system instruction and real-time weather context (temperature, humidity, condition) to the Gemini model. 
 
-### 🤝 Community Forum
-- **Real-time Discussion**: Share your findings with other farmers and seek advice from the community.
-- **Image Sharing**: Post images of your plants to get peer feedback and expert opinions.
-- **Engagement**: Like and comment on posts to build a supportive farming network.
+The model performs the following:
+1. **Image Recognition:** Identifies the specific crop and the part of the plant shown.
+2. **Disease Detection:** Analyzes visual symptoms to detect diseases or pest infestations.
+3. **Contextual Reasoning:** Uses the provided weather data to determine the severity and the most appropriate "Immediate Action" for the farmer.
+4. **Structured Output:** Returns a structured JSON response that the app parses to display actionable treatment protocols (organic and chemical).
 
-### 📂 Personal History & Profile
-- **Secure Sign-In**: Powered by Google Authentication.
-- **Analysis History**: Keep a digital record of all your past diagnoses, complete with images and results.
-- **Search & Filter**: Easily find past analyses by crop name or disease.
+## Proof of Google AI Usage
+Attach screenshots in a `/proof` folder:
+- [AI Proof](./proof/ai-usage-proof.png)
 
-### 🌓 Modern & Responsive UI
-- **Adaptive Theme**: Full support for Light and Dark modes with a nature-inspired aesthetic.
-- **Mobile-First**: Designed for field use with large touch targets and a clean, intuitive layout.
+## Screenshots
+Add project screenshots:
+- **Dashboard:** [Screenshot1](./screenshots/dashboard.png)
+- **AI Analysis:** [Screenshot2](./screenshots/analysis-result.png)
 
----
+## Demo Video
+Upload your demo video to Google Drive and paste the shareable link here (max 3 minutes). [Watch Demo](https://drive.google.com/file/d/your-video-id/view)
 
-## 🛠️ Tech Stack
+## Installation Steps
+```bash
+# Clone the repository
+git clone <your-repo-link>
 
-- **Frontend**: React 19, Vite, TypeScript
-- **Styling**: Tailwind CSS 4, Framer Motion (Animations)
-- **Icons**: Lucide React
-- **Backend**: Firebase (Firestore, Authentication)
-- **AI Engine**: Google Gemini 1.5 Flash
-- **Weather API**: OpenWeather API
-- **Date Utilities**: date-fns
+# Go to project folder
+cd cropcare-ai
 
----
+# Install dependencies
+npm install
 
-## ⚙️ Getting Started
-
-### Prerequisites
-- Node.js (v18 or higher)
-- npm or yarn
-
-### Installation
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/your-username/cropcare-ai.git
-   cd cropcare-ai
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Environment Variables**:
-   Create a `.env` file in the root directory and add your API keys:
-   ```env
-   VITE_GEMINI_API_KEY=your_gemini_api_key
-   VITE_OPENWEATHER_API_KEY=your_openweather_api_key
-   ```
-
-4. **Firebase Configuration**:
-   Place your `firebase-applet-config.json` in the `src/` directory.
-
-5. **Start the development server**:
-   ```bash
-   npm run dev
-   ```
-
----
-
-## 🔒 Security & Data
-
-CropCare AI implements robust **Firebase Security Rules** to ensure:
-- **Data Privacy**: Users can only access their own analysis history.
-- **PII Protection**: Sensitive user data (emails) is strictly locked down.
-- **Schema Validation**: All Firestore writes are validated for type, length, and required fields.
-
----
-
-## 📄 License
-
-This project is licensed under the **Apache-2.0 License**.
-
----
-
-## 👨‍🌾 Contributing
-
-We welcome contributions to help improve CropCare AI! Whether it's adding support for more crops, improving the AI prompts, or enhancing the UI, feel free to open an issue or submit a pull request.
-
----
-
-*Developed with ❤️ for the farming community.*
+# Run the project
+npm start
+```
