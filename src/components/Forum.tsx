@@ -9,7 +9,9 @@ import {
   X,
   MessageCircle,
   ChevronRight,
-  Trash2
+  Trash2,
+  LogIn,
+  Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { auth, db, handleFirestoreError, OperationType, signInWithGoogle } from '../firebase';
@@ -57,6 +59,8 @@ export default function Forum() {
   const [newImage, setNewImage] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -126,15 +130,20 @@ export default function Forum() {
   const handleDeletePost = async (postId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!auth.currentUser) return;
-    if (!window.confirm('Are you sure you want to delete this post? All comments will also be inaccessible.')) return;
+    setDeletingPostId(postId);
+  };
 
+  const confirmDeletePost = async () => {
+    if (!deletingPostId) return;
     try {
-      await deleteDoc(doc(db, 'posts', postId));
-      if (selectedPost?.id === postId) {
+      await deleteDoc(doc(db, 'posts', deletingPostId));
+      if (selectedPost?.id === deletingPostId) {
         setSelectedPost(null);
       }
+      setDeletingPostId(null);
     } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `posts/${postId}`);
+      console.error('Delete post failed:', err);
+      handleFirestoreError(err, OperationType.DELETE, `posts/${deletingPostId}`);
     }
   };
 
@@ -171,19 +180,25 @@ export default function Forum() {
     }
   };
 
-  const handleDeleteComment = async (commentId: string) => {
+  const handleDeleteComment = async (commentId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!auth.currentUser || !selectedPost) return;
-    if (!window.confirm('Are you sure you want to delete this comment?')) return;
+    setDeletingCommentId(commentId);
+  };
 
+  const confirmDeleteComment = async () => {
+    if (!deletingCommentId || !selectedPost) return;
     try {
-      await deleteDoc(doc(db, `posts/${selectedPost.id}/comments`, commentId));
+      await deleteDoc(doc(db, `posts/${selectedPost.id}/comments`, deletingCommentId));
       
       // Decrement comment count
       await updateDoc(doc(db, 'posts', selectedPost.id), {
         commentCount: increment(-1)
       });
+      setDeletingCommentId(null);
     } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `comments/${commentId}`);
+      console.error('Delete comment failed:', err);
+      handleFirestoreError(err, OperationType.DELETE, `comments/${deletingCommentId}`);
     }
   };
 
@@ -219,10 +234,22 @@ export default function Forum() {
           }}
           className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-200 dark:shadow-none transition-all"
         >
-          <Plus size={20} />
-          Ask Question
+          {auth.currentUser ? <Plus size={20} /> : <LogIn size={20} />}
+          {auth.currentUser ? 'Ask Question' : 'Sign In to Post'}
         </button>
       </div>
+
+      {!auth.currentUser && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 p-4 rounded-2xl flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 shrink-0">
+            <Info size={20} />
+          </div>
+          <div>
+            <h4 className="font-bold text-blue-900 dark:text-blue-100">Guest Mode</h4>
+            <p className="text-sm text-blue-700 dark:text-blue-300">You are currently viewing the forum as a guest. You can read all posts and comments, but you'll need to sign in to join the conversation.</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6">
         {posts.map((post) => (
@@ -440,7 +467,7 @@ export default function Forum() {
                               <div className="flex items-center gap-2">
                                 {auth.currentUser?.uid === comment.authorUid && (
                                   <button 
-                                    onClick={() => handleDeleteComment(comment.id)}
+                                    onClick={(e) => handleDeleteComment(comment.id, e)}
                                     className="text-red-500 hover:text-red-600 transition-colors"
                                   >
                                     <Trash2 size={12} />
@@ -476,6 +503,92 @@ export default function Forum() {
                     </form>
                   </div>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Post Confirmation Modal */}
+      <AnimatePresence>
+        {deletingPostId && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeletingPostId(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-white dark:bg-gray-800 rounded-[2rem] shadow-2xl p-8 text-center space-y-6"
+            >
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-600 mx-auto">
+                <Trash2 size={32} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Delete Post?</h3>
+                <p className="text-gray-500 dark:text-gray-400">This action cannot be undone. Are you sure you want to remove this post and all its comments?</p>
+              </div>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setDeletingPostId(null)}
+                  className="flex-1 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmDeletePost}
+                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-200 dark:shadow-none"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Comment Confirmation Modal */}
+      <AnimatePresence>
+        {deletingCommentId && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeletingCommentId(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-white dark:bg-gray-800 rounded-[2rem] shadow-2xl p-8 text-center space-y-6"
+            >
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-600 mx-auto">
+                <Trash2 size={32} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Delete Comment?</h3>
+                <p className="text-gray-500 dark:text-gray-400">Are you sure you want to remove this comment?</p>
+              </div>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setDeletingCommentId(null)}
+                  className="flex-1 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmDeleteComment}
+                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-200 dark:shadow-none"
+                >
+                  Delete
+                </button>
               </div>
             </motion.div>
           </div>
