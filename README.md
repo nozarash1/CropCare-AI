@@ -38,7 +38,7 @@ The Gemini 3 Flash model is the core engine of CropCare AI. When a user uploads 
 
 ## 🎥 Demo Video
 
-Upload your demo video to Google Drive and paste the shareable link here (max 3 minutes). [Watch Demo](https://drive.google.com/file/d/1oWzp67bFK2KpLCVqQNZdhE78JYR4EuVf/view?usp=drive_link)
+ [Watch Demo](https://drive.google.com/file/d/1oWzp67bFK2KpLCVqQNZdhE78JYR4EuVf/view?usp=drive_link)
 
 ## ⚙️ Installation Steps
 
